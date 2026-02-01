@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { auth } from "./components/auth";
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static).*)"],
 };
 
 export async function proxy(req: NextRequest) {
