@@ -23,6 +23,7 @@ export async function proxy(req: NextRequest) {
     });
     if (
       !String(pathname).startsWith("/auth/") &&
+      !String(pathname).startsWith("/api/auth/") &&
       checkUserLoginStatus === null
     ) {
       return NextResponse.redirect(new URL("/auth/login", req.url));
