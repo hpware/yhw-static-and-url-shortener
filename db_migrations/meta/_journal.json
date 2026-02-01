@@ -15,6 +15,13 @@
       "when": 1769930759771,
       "tag": "0001_57612ad616993ce3bb4785a6",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769953010052,
+      "tag": "0002_curious_odin",
+      "breakpoints": true
     }
   ]
 }

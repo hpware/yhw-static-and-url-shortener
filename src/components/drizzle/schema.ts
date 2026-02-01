@@ -18,6 +18,71 @@ export const kvData = pgTable("kv_data", {
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// 縮短器
+export const shortenerData = pgTable("shortener_data", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  createdBy: text("created_by")
+    .notNull()
+    .references(() => user.id),
+  updatedBy: text("updated_by")
+    .notNull()
+    .references(() => user.id),
+  qrCodePath: text("qr_code_path").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
+export const shortenerAnalytics = pgTable("shortener_analytics", {
+  id: text("id").primaryKey(),
+  refId: text("ref_id")
+    .notNull()
+    .references(() => shortenerData.id),
+  ip: text("ip").notNull(),
+  ipRegion: text("ip_region").notNull(),
+  userAgent: text("user_agent").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// site data (not including s3)
+
+export const siteData = pgTable("site_data", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  // require authentication
+  //requireAuth: boolean("require_auth").notNull(), // i'll do it later.
+  // fs path
+  fsPath: text("fs_path").notNull(),
+  createdBy: text("created_by")
+    .notNull()
+    .references(() => user.id),
+  updatedBy: text("updated_by")
+    .notNull()
+    .references(() => user.id),
+  qrCodePath: text("qr_code_path").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
+export const siteAnalytics = pgTable("site_analytics", {
+  id: text("id").primaryKey(),
+  siteId: text("site_id")
+    .notNull()
+    .references(() => siteData.id),
+  ip: text("ip").notNull(),
+  ipRegion: text("ip_region").notNull(),
+  userAgent: text("user_agent").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // ################################
 // #          auth 資料庫          #
 // ################################
