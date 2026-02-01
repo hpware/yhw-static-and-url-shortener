@@ -1,5 +1,5 @@
-import { NextRequest } from "next/server"
+import { NextRequest } from "next/server";
 
 export const GET = async (req: NextRequest) => {
-    return Response.redirect(new URL("https://default.tw"), 307)
-}
+  return Response.redirect(new URL("https://default.tw"), 307);
+};

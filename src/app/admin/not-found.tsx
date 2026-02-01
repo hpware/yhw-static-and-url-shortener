@@ -1,7 +1,7 @@
 export default function NotFound() {
-    return (
-        <div>
-            <span>Error</span>
-        </div>
-    )
+  return (
+    <div>
+      <span>Error</span>
+    </div>
+  );
 }
