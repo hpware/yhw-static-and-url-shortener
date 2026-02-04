@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { forwardRedirect } from "../redirectFunction";
-type props = { params: Promise<{ path: string }> };
+type props = { params: Promise<{ path: string[] }> };
 
 // list: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods
 export const GET = async (req: NextRequest, props: props) =>

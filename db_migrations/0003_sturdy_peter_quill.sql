@@ -1,0 +1,1 @@
+ALTER TABLE "shortener_data" ADD COLUMN "destination" text NOT NULL;

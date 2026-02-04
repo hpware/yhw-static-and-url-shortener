@@ -1,7 +1,7 @@
 import { string } from "better-auth";
 import { NextRequest } from "next/server";
 
-type props = { params: Promise<{ slug: string; path: string }> };
+type props = { params: Promise<{ slug: string; path: string[] }> };
 
 async function serveStaticAsset(req: NextRequest, props: props) {
   try {

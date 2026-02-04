@@ -20,9 +20,10 @@ export const kvData = pgTable("kv_data", {
 
 // 縮短器
 export const shortenerData = pgTable("shortener_data", {
-  id: text("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug").notNull(),
+  destination: text("destination").notNull(),
   createdBy: text("created_by")
     .notNull()
     .references(() => user.id),
@@ -38,8 +39,8 @@ export const shortenerData = pgTable("shortener_data", {
 });
 
 export const shortenerAnalytics = pgTable("shortener_analytics", {
-  id: text("id").primaryKey(),
-  refId: text("ref_id")
+  id: uuid("id").primaryKey().defaultRandom(),
+  refId: uuid("ref_id")
     .notNull()
     .references(() => shortenerData.id),
   ip: text("ip").notNull(),
