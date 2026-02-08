@@ -1,0 +1,1 @@
+ALTER TABLE "shortener_data" ALTER COLUMN "qr_code_path" DROP NOT NULL;

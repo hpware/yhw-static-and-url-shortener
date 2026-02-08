@@ -1,0 +1,14 @@
+type: workspace
+model: workspace
+id: wk_zomutf2JwR
+createdAt: 2026-02-08T15:09:26.055283
+updatedAt: 2026-02-08T15:09:26.055284
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: yhw-static-and-url-shortener
+encryptionKeyChallenge: null
+settingValidateCertificates: true
+settingFollowRedirects: true
+settingRequestTimeout: 0

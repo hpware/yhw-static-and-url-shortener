@@ -30,7 +30,7 @@ export const shortenerData = pgTable("shortener_data", {
   updatedBy: text("updated_by")
     .notNull()
     .references(() => user.id),
-  qrCodePath: text("qr_code_path").notNull(),
+  qrCodePath: text("qr_code_path"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

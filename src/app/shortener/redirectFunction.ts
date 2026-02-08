@@ -6,7 +6,7 @@ import { NextRequest } from "next/server";
 
 type props = { params: Promise<{ path: string[] }> };
 
-const saveAnalyticsData = (req: NextRequest, slugId: string) => {
+export const saveAnalyticsData = (req: NextRequest, slugId: string) => {
   Promise.resolve(async () => {
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     const userAgent = req.headers.get("user-agent") || "unknown";

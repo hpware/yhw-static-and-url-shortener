@@ -22,6 +22,13 @@
       "when": 1770561930441,
       "tag": "0002_70bbfd4126bf4023c48e96c1",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1770563290020,
+      "tag": "0003_lively_lady_deathstrike",
+      "breakpoints": true
     }
   ]
 }

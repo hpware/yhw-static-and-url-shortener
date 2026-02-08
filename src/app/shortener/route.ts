@@ -3,6 +3,7 @@ import { kvData } from "@/components/drizzle/schema";
 import randomString from "@/components/randomString";
 import { eq } from "drizzle-orm";
 import { NextRequest } from "next/server";
+import { saveAnalyticsData } from "./redirectFunction";
 
 async function forwardRedirect(req: NextRequest) {
   try {
@@ -10,6 +11,25 @@ async function forwardRedirect(req: NextRequest) {
       .select()
       .from(kvData)
       .where(eq(kvData.key, "indexPageRedirection"));
+    if (
+      loadIndexKvRedirect[0].value === null &&
+      String(loadIndexKvRedirect[0].value).match(/^(https?:\/\/[^/]+)(.*)$/) ===
+        null
+    ) {
+      // wait it is jsonb !!
+      return Response.redirect(
+        new URL(
+          "/err?type=ERR_REDIRECT_NOT_FOUND",
+          process.env.NEXT_PUBLIC_SITE_URL,
+        ),
+      );
+    }
+
+    saveAnalyticsData(req, "/");
+    return Response.redirect(
+      new URL(String(loadIndexKvRedirect[0].value)),
+      307,
+    );
   } catch (e: any) {
     const errorId = randomString(16);
     console.error(`ERRID: ${errorId}`, e);
