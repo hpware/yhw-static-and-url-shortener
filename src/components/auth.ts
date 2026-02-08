@@ -29,6 +29,7 @@ export const auth = betterAuth({
     }),
     after: createAuthMiddleware(async (ctx) => {
       if (ctx.path === "/sign-up/email") {
+        // @ts-ignore hey this works, please don't touch it.
         if (ctx.context.returned?.status !== undefined) {
           return;
         }
