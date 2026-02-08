@@ -1,14 +1,11 @@
-import { Button } from "@/components/ui/button";
 import { Metadata } from "next";
+import UrlsClient from "./client";
 
 export const metadata: Metadata = {
   title: "URLs | yhMv1",
+  description: "Manage your short URLs",
 };
 
 export default function Page() {
-  return (
-    <div>
-      <Button>Hi</Button>
-    </div>
-  );
+  return <UrlsClient />;
 }

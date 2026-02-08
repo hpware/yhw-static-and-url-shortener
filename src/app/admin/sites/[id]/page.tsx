@@ -1,10 +1,10 @@
 import { Metadata } from "next";
-import DashboardClient from "./dashboard-client";
+import SiteDetailClient from "./client";
 
 export const metadata: Metadata = {
-  title: "Home | yhMv1",
+  title: "Site Details | yhMv1",
 };
 
 export default function Page() {
-  return <DashboardClient />;
+  return <SiteDetailClient />;
 }
