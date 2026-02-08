@@ -6,16 +6,14 @@ import { NextRequest } from "next/server";
 
 type props = { params: Promise<{ path: string[] }> };
 
-export const saveAnalyticsData = (req: NextRequest, slugId: string) => {
-  Promise.resolve(async () => {
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
-    const userAgent = req.headers.get("user-agent") || "unknown";
-    await db.insert(shortenerAnalytics).values({
-      refId: slugId,
-      ip,
-      ipRegion: "a",
-      userAgent,
-    });
+export const saveAnalyticsData = async (req: NextRequest, slugId: string) => {
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  const userAgent = req.headers.get("user-agent") || "unknown";
+  await db.insert(shortenerAnalytics).values({
+    refId: slugId,
+    ip,
+    ipRegion: "a",
+    userAgent,
   });
 };
 
