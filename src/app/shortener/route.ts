@@ -1,5 +1,27 @@
+import { db } from "@/components/drizzle/db";
+import { kvData } from "@/components/drizzle/schema";
+import randomString from "@/components/randomString";
+import { eq } from "drizzle-orm";
 import { NextRequest } from "next/server";
-import { forwardRedirect } from "./redirectFunction";
+
+async function forwardRedirect(req: NextRequest) {
+  try {
+    const loadIndexKvRedirect = await db
+      .select()
+      .from(kvData)
+      .where(eq(kvData.key, "indexPageRedirection"));
+  } catch (e: any) {
+    const errorId = randomString(16);
+    console.error(`ERRID: ${errorId}`, e);
+    return Response.redirect(
+      new URL(
+        `/err?type=SERVER_SIDE_ERR&id=${errorId}`,
+        process.env.NEXT_PUBLIC_SITE_URL,
+      ),
+      307,
+    );
+  }
+}
 
 // list: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods
 export const GET = async (req: NextRequest) => await forwardRedirect(req);

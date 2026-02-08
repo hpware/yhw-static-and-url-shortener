@@ -1,6 +1,6 @@
 {
-  "id": "8e2785b3-e2ef-4029-a471-f8f7a8ea3e31",
-  "prevId": "06a1714d-8021-40ba-ad80-a97c9e3ed411",
+  "id": "81d1e475-adcb-443e-9d6b-a438b175bbb2",
+  "prevId": "8d6a7eb9-d75d-4b56-8440-ddfe92836d45",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -100,24 +100,24 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "account_user_id_user_id_fk": {
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
-          "tableTo": "user",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "user",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -136,15 +136,15 @@
           "primaryKey": true,
           "notNull": true,
           "identity": {
-            "type": "always",
             "name": "kv_data_id_seq",
-            "schema": "public",
             "increment": "1",
-            "startWith": "1",
             "minValue": "1",
             "maxValue": "2147483647",
+            "startWith": "1",
             "cache": "1",
-            "cycle": false
+            "cycle": false,
+            "schema": "public",
+            "type": "always"
           }
         },
         "key": {
@@ -180,10 +180,10 @@
       "uniqueConstraints": {
         "kv_data_key_unique": {
           "name": "kv_data_key_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "key"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -256,34 +256,34 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "session_user_id_user_id_fk": {
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
-          "tableTo": "user",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "user",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "session_token_unique": {
           "name": "session_token_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "token"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -296,13 +296,14 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "ref_id": {
           "name": "ref_id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -337,15 +338,15 @@
         "shortener_analytics_ref_id_shortener_data_id_fk": {
           "name": "shortener_analytics_ref_id_shortener_data_id_fk",
           "tableFrom": "shortener_analytics",
-          "tableTo": "shortener_data",
           "columnsFrom": [
             "ref_id"
           ],
+          "tableTo": "shortener_data",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -360,9 +361,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "name": {
           "name": "name",
@@ -372,6 +374,12 @@
         },
         "slug": {
           "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "destination": {
+          "name": "destination",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -414,28 +422,28 @@
         "shortener_data_created_by_user_id_fk": {
           "name": "shortener_data_created_by_user_id_fk",
           "tableFrom": "shortener_data",
-          "tableTo": "user",
           "columnsFrom": [
             "created_by"
           ],
+          "tableTo": "user",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "shortener_data_updated_by_user_id_fk": {
           "name": "shortener_data_updated_by_user_id_fk",
           "tableFrom": "shortener_data",
-          "tableTo": "user",
           "columnsFrom": [
             "updated_by"
           ],
+          "tableTo": "user",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -491,15 +499,15 @@
         "site_analytics_site_id_site_data_id_fk": {
           "name": "site_analytics_site_id_site_data_id_fk",
           "tableFrom": "site_analytics",
-          "tableTo": "site_data",
           "columnsFrom": [
             "site_id"
           ],
+          "tableTo": "site_data",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -574,28 +582,28 @@
         "site_data_created_by_user_id_fk": {
           "name": "site_data_created_by_user_id_fk",
           "tableFrom": "site_data",
-          "tableTo": "user",
           "columnsFrom": [
             "created_by"
           ],
+          "tableTo": "user",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "site_data_updated_by_user_id_fk": {
           "name": "site_data_updated_by_user_id_fk",
           "tableFrom": "site_data",
-          "tableTo": "user",
           "columnsFrom": [
             "updated_by"
           ],
+          "tableTo": "user",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -660,10 +668,10 @@
       "uniqueConstraints": {
         "user_email_unique": {
           "name": "user_email_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "email"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -725,9 +733,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {},
@@ -740,10 +748,10 @@
   },
   "enums": {},
   "schemas": {},
+  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
-  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},

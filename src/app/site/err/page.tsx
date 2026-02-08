@@ -25,8 +25,14 @@ export default function Page() {
       errorType: "NOT_ALLOWED",
       text: "你沒有權限存取這個頁面",
     },
+    {
+      errorCode: "500",
+      errorType: "SERVER_SIDE_ERR",
+      text: "伺服器錯誤",
+    },
   ];
   const typeParams = params.get("type");
+  const errorId = params.get("id");
   if (!(typeParams && errors.some((error) => error.errorType === typeParams))) {
     notFound();
   }
@@ -41,7 +47,7 @@ export default function Page() {
           {errors.find((error) => error.errorType === typeParams)?.text ||
             "我不知道"}
         </span>
-        <span>錯誤訊息: {typeParams}</span>
+        <span>錯誤 ID: {errorId?.match(/^[a-zA-Z0-9]+$/) || "N/A"}</span>
       </div>
     </div>
   );

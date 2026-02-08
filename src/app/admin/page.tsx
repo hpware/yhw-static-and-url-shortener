@@ -1,5 +1,5 @@
-import { Button } from "
-]Page() {
+import { Button } from "@/components/ui/button";
+export default function Page() {
   return (
     <div>
       <div className="grid xs:grid-cols-1 xs:mx-4 md:grid-cols-3 xl:grid-cols-5">

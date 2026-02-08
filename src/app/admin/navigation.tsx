@@ -9,6 +9,7 @@ const links = [
   { href: "/", label: "Home" },
   { href: "/urls", label: "URLs" },
   { href: "/sites", label: "Sites" },
+  { href: "/settings", label: "Settings" },
 ];
 
 export default function Navigation() {
