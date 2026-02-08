@@ -1,8 +1,9 @@
 "use client";
 import { notFound } from "next/navigation";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function Page() {
+function ClientPage() {
   const params = useSearchParams();
   const errors = [
     {
@@ -50,5 +51,13 @@ export default function Page() {
         <span>錯誤 ID: {errorId?.match(/^[a-zA-Z0-9]+$/) || "N/A"}</span>
       </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense>
+      <ClientPage />
+    </Suspense>
   );
 }
