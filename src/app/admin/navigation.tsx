@@ -1,5 +1,6 @@
 "use client";
 
+import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -38,6 +39,11 @@ export default function Navigation() {
               <span className="text-accent-foreground/60 text-xs">v1</span>
             </Link>
           </ViewTransition>
+          <div className="flex flex-row items-center space-x-3">
+            <Link href="/auth/logout" className="group cursor-pointer">
+              <LogOut className="w-4 h-4 group-hover:-rotate-5 group-hover:scale-110" />
+            </Link>
+          </div>
         </div>
       )}
       <div
