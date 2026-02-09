@@ -40,9 +40,9 @@ export default function Navigation() {
             </Link>
           </ViewTransition>
           <div className="flex flex-row items-center space-x-3">
-            <Link href="/auth/logout" className="group cursor-pointer">
+            <a href="/auth/logout" className="group cursor-pointer">
               <LogOut className="w-4 h-4 group-hover:-rotate-5 group-hover:scale-110" />
-            </Link>
+            </a>
           </div>
         </div>
       )}
