@@ -122,6 +122,7 @@ export default function Client() {
                         navigator.clipboard.writeText(
                           `${process.env.NEXT_PUBLIC_URL_SHORTENER_URL}/${res.slug}`,
                         );
+                        toast.success("複製成功");
                       }}
                     >
                       Copy
