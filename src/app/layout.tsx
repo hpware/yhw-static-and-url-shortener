@@ -12,8 +12,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-TW" className={`${ubuntuFont.variable} antialiased`}>
-      <body className="dark">{children}</body>
+    <html
+      lang="zh-TW"
+      className={`${ubuntuFont.variable} antialiased`}
+      suppressHydrationWarning={true}
+    >
+      <body className="dark">
+        {children}
+        {process.env.NODE_ENV === "development" && (
+          <div className="fixed right-0 bottom-0 px-3 py-1 bg-accent/40 rounded-tl-lg">
+            <div>Dev</div>
+          </div>
+        )}
+      </body>
     </html>
   );
 }
