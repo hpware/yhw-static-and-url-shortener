@@ -42,7 +42,7 @@ export const GET = async (
       });
     }
     return new Response("Invalid type", { status: 400 });
-  } catch (e) {
+  } catch (e: any) {
     return new Response(`[ERR]: ${e.message}`);
   }
 };

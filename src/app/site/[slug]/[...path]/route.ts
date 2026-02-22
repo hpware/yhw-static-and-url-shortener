@@ -13,7 +13,7 @@ async function serveStaticAsset(req: NextRequest, props: props) {
     return new Response(
       `Slug: ${slug} | Path: ${path.join("/")} | Serving Assets!`,
     );
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
     return new Response(`ERROR!`);
   }

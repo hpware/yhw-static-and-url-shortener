@@ -275,7 +275,9 @@ export default function Client() {
                   />
                   <Button type="submit">Create</Button>
                 </form>
-                {sendData.isLoading && <p>Loading...</p>}
+                {
+                  //{sendData?.isLoading && <p>Loading...</p>}
+                }
               </DialogContent>
             </Dialog>
           </div>
