@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { auth } from "./components/auth";
+import { db } from "./components/drizzle/db";
 
 export const config = {
   matcher: ["/((?!_next/static).*)"],
@@ -15,6 +16,7 @@ export async function proxy(req: NextRequest) {
   // import these to env values later.
   const siteHostingDomain = process.env.NEXT_PUBLIC_SITE_DOMAIN;
   const adminManagementDomain = process.env.NEXT_PUBLIC_ADMIN_DOMAIN;
+  const shortenerDomain = process.env.NEXT_PUBLIC_URL_SHORTENER_DOMAIN;
   if (hostname === siteHostingDomain) {
     return NextResponse.rewrite(new URL(`/site${pathname}`, req.url));
   } else if (hostname === adminManagementDomain) {
@@ -36,6 +38,10 @@ export async function proxy(req: NextRequest) {
       }
     }
     return NextResponse.rewrite(new URL(`/admin${pathname}`, req.url));
+  } else if (hostname === shortenerDomain) {
+    return NextResponse.rewrite(new URL(`/shortener${pathname}`, req.url));
+  } else {
+    // site custom domains
+    return NextResponse.rewrite(new URL(`/shortener${pathname}`, req.url)); // for now just go to shortener.
   }
-  return NextResponse.rewrite(new URL(`/shortener${pathname}`, req.url));
 }

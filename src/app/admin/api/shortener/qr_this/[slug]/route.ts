@@ -17,18 +17,29 @@ export const GET = async (
       statusCode = 401;
       throw new Error("Unauthorized");
     }
+    if (!checkAuth?.session?.userId) {
+      statusCode = 401;
+      throw new Error("Unauthorized");
+    }
+
     const { slug } = await context.params;
     const params = new URLSearchParams(req.url.split("?")[1]);
-    const { type = "png", dl: download = "0" } = Object.fromEntries(params);
+    const {
+      type = "png",
+      dl: download = "0",
+      size = "512",
+      margin = "1",
+      scale = "1",
+    } = Object.fromEntries(params);
 
     if (type === "png" || type === "jpeg" || type === "jpg") {
       // generate QR
       const qr = (await QRCode.toBuffer(
         `${process.env.NEXT_PUBLIC_URL_SHORTENER_URL}/${slug}`,
         {
-          width: 512,
-          margin: 1,
-          scale: 3,
+          width: parseInt(size),
+          margin: parseInt(margin),
+          scale: parseInt(scale),
           errorCorrectionLevel: "Q",
         },
       )) as BodyInit;

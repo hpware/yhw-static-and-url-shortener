@@ -1,10 +1,11 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Metadata } from "next";
-import { ListPlusIcon } from "lucide-react";
+import { DotIcon, ListPlusIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -14,9 +15,12 @@ import { Label } from "@/components/ui/label";
 import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 import { toast } from "sonner";
 import Link from "next/link";
+import { Slider } from "@/components/ui/slider";
+import { LoadingDots } from "@/components/ai/loading-dots";
+import Table from "@/components/table";
+import { shortenerData } from "@/components/drizzle/schema";
 
 export const metadata: Metadata = {
   title: "URLs | yhMv1",
@@ -32,30 +36,61 @@ type PopTopType = {
 
 export default function Client() {
   const [popTop, setPopTop] = useState<PopTopType[]>([]);
+  const [popUpQRPanelURL, setPopUpQRPanelURL] = useState<string>("");
   const [popUpQRPanel, setPopUpQRPanel] = useState<{
     status: boolean;
     slug: string;
     formatType: "png" | "jpg";
+    size: number;
+    margin: number;
+    scale: number;
+    loading: boolean;
   }>({
     status: false,
     slug: "",
     formatType: "png",
+    size: 512,
+    margin: 1,
+    scale: 1,
+    loading: false, // just here ig
   });
+  const [qrPanelImageLoading, setQRPanelImageLoading] =
+    useState<boolean>(false);
   const [invalidChecks, setInvalidChecks] = useState({
     url: false,
     slug: false,
   });
 
+  // dev usage
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      setPopUpQRPanel({
+        status: true,
+        slug: "example",
+        formatType: "png",
+        size: 128,
+        margin: 1,
+        scale: 1,
+        loading: false,
+      });
+    }
+  }, []);
+
   const getUrls = useInfiniteQuery({
     queryKey: ["url"],
     queryFn: async () => {
-      const response = await fetch("/api/shortener/urls");
+      const response = await fetch("/api/shortener/get_all_links");
       const data = await response.json();
       return data;
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage, pages) => lastPage.nextOffset,
   });
+
+  useEffect(() => {
+    const url = `/api/shortener/qr_this/${popUpQRPanel.slug}?type=${popUpQRPanel.formatType}&dl=0&size=${popUpQRPanel.size}&margin=${popUpQRPanel.margin}&scale=${popUpQRPanel.scale}`;
+    setPopUpQRPanelURL(url);
+  }, [popUpQRPanel]);
 
   //useEffect(() => {
   //  popTop.forEach((i: PopTopType) => {
@@ -152,6 +187,11 @@ export default function Client() {
       return res;
     },
   });
+  useEffect(() => {
+    if (popUpQRPanelURL) {
+      setQRPanelImageLoading(true);
+    }
+  }, [popUpQRPanelURL]);
 
   return (
     <>
@@ -163,10 +203,17 @@ export default function Client() {
           }}
         >
           <DialogContent>
-            <DialogTitle>生成 QR Code</DialogTitle>
+            <DialogTitle className="flex items-center flex-row gap-2">
+              生成 QR Code {qrPanelImageLoading && <LoadingDots />}
+            </DialogTitle>
             <img
-              src={`api/shortener/qr_this/${popUpQRPanel.slug}?type=${popUpQRPanel.formatType}&dl=0`}
-            ></img>
+              src={popUpQRPanelURL}
+              alt="QR Code"
+              onLoad={() => {
+                setQRPanelImageLoading(false);
+              }}
+            />
+
             <Tabs
               value={popUpQRPanel.formatType}
               onValueChange={(value) => {
@@ -181,6 +228,59 @@ export default function Client() {
                 <TabsTrigger value="jpg">JPG</TabsTrigger>
               </TabsList>
             </Tabs>
+            <span>Size</span>
+            <div className="flex flex-row justify-center text-center">
+              <Slider
+                min={128}
+                max={4192}
+                step={128}
+                value={[popUpQRPanel.size]}
+                onValueChange={(value) => {
+                  setPopUpQRPanel({
+                    ...popUpQRPanel,
+                    size: value[0],
+                  });
+                }}
+              />
+              <span>{popUpQRPanel.size}</span>
+            </div>
+            <span>Margin</span>
+            <div className="flex flex-row justify-center text-center">
+              <Slider
+                min={0}
+                max={10}
+                step={1}
+                value={[popUpQRPanel.margin]}
+                onValueChange={(value) => {
+                  setPopUpQRPanel({
+                    ...popUpQRPanel,
+                    margin: value[0],
+                  });
+                }}
+              />
+              <span>{popUpQRPanel.margin}</span>
+            </div>
+            <span>Scale</span>
+            <div className="flex flex-row justify-center text-center">
+              <Slider
+                min={1}
+                max={10}
+                step={1}
+                value={[popUpQRPanel.scale]}
+                onValueChange={(value) => {
+                  setPopUpQRPanel({
+                    ...popUpQRPanel,
+                    scale: value[0],
+                  });
+                }}
+              />
+              <span>{popUpQRPanel.scale}</span>
+            </div>
+            <DialogFooter>
+              <Link href={popUpQRPanelURL.replace("dl=0", "dl=1")}>
+                <Button>Download</Button>
+              </Link>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
@@ -273,7 +373,9 @@ export default function Client() {
                       }
                     }}
                   />
-                  <Button type="submit">Create</Button>
+                  <DialogFooter>
+                    <Button type="submit">Create</Button>
+                  </DialogFooter>
                 </form>
                 {
                   //{sendData?.isLoading && <p>Loading...</p>}
@@ -282,6 +384,19 @@ export default function Client() {
             </Dialog>
           </div>
         </div>
+        <Table
+          columns={[
+            {
+              id: "ap",
+              header: () => <span>hi</span>,
+            },
+          ]}
+          data={
+            getUrls.data !== undefined
+              ? (getUrls.data as (typeof shortenerData.$inferSelect)[])
+              : []
+          } //(typeof shortenerData.$inferSelect)[]}
+        />
       </div>
     </>
   );
