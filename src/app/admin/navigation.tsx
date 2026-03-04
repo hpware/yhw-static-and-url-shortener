@@ -24,7 +24,7 @@ export default function Navigation() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 30);
+      setScrolled(window.scrollY > 100);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -48,7 +48,7 @@ export default function Navigation() {
         </div>
       )}
       <div
-        className={`transition-all duration-300 flex flex-row overflow-x-scroll hide-scrollbar border-b border-accent p-1 m-1 pl-3 ${scrolled ? "fixed inset-x-0 bg-accent/70 rounded-xl" : ""}`}
+        className={`transition-all duration-300 flex flex-row overflow-x-scroll hide-scrollbar border-b border-accent p-1 m-1 pl-3 ${scrolled ? "fixed inset-x-0 bg-accent/70 rounded-xl z-50" : ""}`}
       >
         {scrolled && (
           <ViewTransition name="yhMTitle">
@@ -64,7 +64,7 @@ export default function Navigation() {
             <Link
               key={index}
               href={link.href}
-              className={`hover:text-accent-foreground hover:bg-accent transition-all duration-100 p-1 ${index === 0 ? "rounded-l-md" : ""} ${index === links.length - 1 ? "rounded-r-md" : ""} ${pathname === link.href ? "border-b border-accent-foreground/90 rounded-b-none text-accent-foreground" : " text-accent-foreground/70"}`}
+              className={`hover:text-accent-foreground hover:bg-blue-600 transition-all duration-100 p-1 rounded-md ${pathname === link.href ? "border-b border-accent-foreground/90 rounded-b-none text-accent-foreground" : " text-accent-foreground/70"}`}
             >
               {link.label}
             </Link>

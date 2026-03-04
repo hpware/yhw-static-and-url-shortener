@@ -22,7 +22,10 @@ export const GET = async (req: NextRequest) => {
       throw new Error("Unauthorized");
     }
     const data = await db.select().from(shortenerData).limit(100);
-    return Response.json(data);
+    return Response.json({
+      result: data,
+      nextOffset: 100,
+    });
   } catch (e: any) {
     const erroID = randomString(8, "default");
     console.error(`[ID: ${erroID}] ${e}`);

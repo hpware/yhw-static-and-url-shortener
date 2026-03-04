@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -62,30 +62,35 @@ export default function Client() {
   });
 
   // dev usage
-  useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
-      setPopUpQRPanel({
-        status: true,
-        slug: "example",
-        formatType: "png",
-        size: 128,
-        margin: 1,
-        scale: 1,
-        loading: false,
-      });
-    }
-  }, []);
+  //useEffect(() => {
+  //  if (process.env.NODE_ENV === "development") {
+  //    setPopUpQRPanel({
+  //      status: true,
+  //      slug: "example",
+  //      formatType: "png",
+  //      size: 128,
+  //      margin: 1,
+  //      scale: 1,
+  //      loading: false,
+  //    });
+  //  }
+  //}, []);
 
   const getUrls = useInfiniteQuery({
     queryKey: ["url"],
-    queryFn: async () => {
-      const response = await fetch("/api/shortener/get_all_links");
+    queryFn: async (ask) => {
+      const response = await fetch(
+        `/api/shortener/get_all_links?page=${ask.pageParam}`,
+      );
       const data = await response.json();
       return data;
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage, pages) => lastPage.nextOffset,
   });
+  const memoedData = useMemo(() => {
+    return getUrls.data?.pages.flatMap((i) => i.result);
+  }, [getUrls.data]);
 
   useEffect(() => {
     const url = `/api/shortener/qr_this/${popUpQRPanel.slug}?type=${popUpQRPanel.formatType}&dl=0&size=${popUpQRPanel.size}&margin=${popUpQRPanel.margin}&scale=${popUpQRPanel.scale}`;
@@ -385,17 +390,32 @@ export default function Client() {
           </div>
         </div>
         <Table
+          key="manage_page_DO_NOT_CRASH"
           columns={[
             {
-              id: "ap",
-              header: () => <span>hi</span>,
+              accessorKey: "slug",
+              header: () => <span>Slug</span>,
+              cell: ({ row }) => {
+                if (!row || !row.original) return <span>N/A</span>;
+                return <span>{row.original.slug}</span>;
+              },
+            },
+            {
+              accessorKey: "id",
+              header: () => <span></span>,
+              cell: ({ row }) => {
+                if (!row || !row.original) return <div></div>;
+                const deviceId = row.original.id;
+                return (
+                  <div>
+                    <Button variant="default">更改</Button>
+                    <Button variant="destructive">刪除</Button>
+                  </div>
+                );
+              },
             },
           ]}
-          data={
-            getUrls.data !== undefined
-              ? (getUrls.data as (typeof shortenerData.$inferSelect)[])
-              : []
-          } //(typeof shortenerData.$inferSelect)[]}
+          data={memoedData || []} //(typeof shortenerData.$inferSelect)[]}
         />
       </div>
     </>
