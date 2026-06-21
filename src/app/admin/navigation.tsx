@@ -1,18 +1,20 @@
 "use client";
 
+const links = [
+  { href: "/", label: "Home" },
+  { href: "/urls", label: "URLs" },
+  { href: "/sites", label: "Sites" },
+  { href: "/api-keys", label: "API Keys" },
+  { href: "/api-docs", label: "API Docs" },
+  { href: "/settings", label: "Settings" },
+];
+
 import { authClient } from "@/components/auth-client";
 import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ViewTransition } from "react";
-
-const links = [
-  { href: "/", label: "Home" },
-  { href: "/urls", label: "URLs" },
-  { href: "/sites", label: "Sites" },
-  { href: "/settings", label: "Settings" },
-];
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -59,7 +61,6 @@ export default function Navigation() {
           </ViewTransition>
         )}
         <div className="flex flex-row items-center space-x-3">
-          {/*text */}
           {links.map((link, index) => (
             <Link
               key={index}

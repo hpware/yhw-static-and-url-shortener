@@ -55,9 +55,6 @@ export const siteData = pgTable("site_data", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   slug: text("slug").notNull(),
-  // require authentication
-  //requireAuth: boolean("require_auth").notNull(), // i'll do it later.
-  // fs path
   fsPath: text("fs_path").notNull(),
   createdBy: text("created_by")
     .notNull()
@@ -65,7 +62,7 @@ export const siteData = pgTable("site_data", {
   updatedBy: text("updated_by")
     .notNull()
     .references(() => user.id),
-  qrCodePath: text("qr_code_path").notNull(),
+  qrCodePath: text("qr_code_path"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -82,6 +79,22 @@ export const siteAnalytics = pgTable("site_analytics", {
   ipRegion: text("ip_region").notNull(),
   userAgent: text("user_agent").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// API Keys
+export const apiKeys = pgTable("api_keys", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  key: text("key").notNull().unique(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  lastUsedAt: timestamp("last_used_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
 });
 
 // ################################
@@ -177,4 +190,19 @@ export const accountRelations = relations(account, ({ one }) => ({
     fields: [account.userId],
     references: [user.id],
   }),
+}));
+
+export const apiKeyRelations = relations(apiKeys, ({ one }) => ({
+  user: one(user, {
+    fields: [apiKeys.userId],
+    references: [user.id],
+  }),
+}));
+
+export const shortenerDataRelations = relations(shortenerData, ({ many }) => ({
+  analytics: many(shortenerAnalytics),
+}));
+
+export const siteDataRelations = relations(siteData, ({ many }) => ({
+  analytics: many(siteAnalytics),
 }));

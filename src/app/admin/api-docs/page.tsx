@@ -1,10 +1,10 @@
 import { Metadata } from "next";
-import SitesClient from "./client";
+import ApiDocsClient from "./client";
 
 export const metadata: Metadata = {
-  title: "Sites | yhMv1",
+  title: "API Docs | yhMv1",
 };
 
 export default function Page() {
-  return <SitesClient />;
+  return <ApiDocsClient />;
 }
