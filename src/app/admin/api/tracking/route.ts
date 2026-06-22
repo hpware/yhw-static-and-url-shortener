@@ -13,10 +13,9 @@ export const GET = async (req: Request) => {
   const siteId = url.searchParams.get("site_id");
 
   if (siteId) {
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
     const userAgent = req.headers.get("user-agent") || "unknown";
     try {
-      const loc = await resolveLocation(ip);
+      const loc = await resolveLocation(req);
       await db.insert(siteAnalytics).values({
         id: randomString(16, "url"),
         siteId,

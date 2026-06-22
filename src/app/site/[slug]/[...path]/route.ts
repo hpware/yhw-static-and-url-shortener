@@ -17,10 +17,9 @@ async function serveStaticAsset(req: NextRequest, props: { params: Promise<{ slu
       return new Response("Site not found", { status: 404 });
     }
 
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
     const userAgent = req.headers.get("user-agent") || "unknown";
     try {
-      const loc = await resolveLocation(ip);
+      const loc = await resolveLocation(req);
       await db.insert(siteAnalytics).values({
         id: randomString(16, "url"),
         siteId: site[0].id,
