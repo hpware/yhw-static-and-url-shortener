@@ -28,56 +28,25 @@ export const GET = async (req: Request) => {
       return Response.json({ error: "Not found" }, { status: 404 });
     }
 
-    const [totalClicks] = await db
-      .select({ count: count() })
-      .from(shortenerAnalytics)
-      .where(eq(shortenerAnalytics.refId, link[0].id));
-
+    const linkId = link[0].id;
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const [todayClicks] = await db
-      .select({ count: count() })
-      .from(shortenerAnalytics)
-      .where(sql`${shortenerAnalytics.refId} = ${link[0].id} AND ${shortenerAnalytics.createdAt} >= ${todayStart}`);
 
-    const recentVisits = await db
-      .select()
-      .from(shortenerAnalytics)
-      .where(eq(shortenerAnalytics.refId, link[0].id))
-      .orderBy(sql`${shortenerAnalytics.createdAt} desc`)
-      .limit(50);
-
-    const countryBreakdown = await db
-      .select({
-        country: shortenerAnalytics.country,
-        count: count(shortenerAnalytics.id),
-      })
-      .from(shortenerAnalytics)
-      .where(eq(shortenerAnalytics.refId, link[0].id))
-      .groupBy(shortenerAnalytics.country)
-      .orderBy(sql`count(${shortenerAnalytics.id}) desc`);
-
-    const cityBreakdown = await db
-      .select({
-        city: shortenerAnalytics.city,
-        country: shortenerAnalytics.country,
-        count: count(shortenerAnalytics.id),
-      })
-      .from(shortenerAnalytics)
-      .where(eq(shortenerAnalytics.refId, link[0].id))
-      .groupBy(shortenerAnalytics.city, shortenerAnalytics.country)
-      .orderBy(sql`count(${shortenerAnalytics.id}) desc`)
-      .limit(20);
-
-    const hourlyClicks = await db
-      .select({
-        hour: sql<string>`to_char(${shortenerAnalytics.createdAt}, 'HH24')`,
-        count: count(shortenerAnalytics.id),
-      })
-      .from(shortenerAnalytics)
-      .where(eq(shortenerAnalytics.refId, link[0].id))
-      .groupBy(sql`to_char(${shortenerAnalytics.createdAt}, 'HH24')`)
-      .orderBy(sql`to_char(${shortenerAnalytics.createdAt}, 'HH24')`);
+    const [
+      [totalClicks],
+      [todayClicks],
+      recentVisits,
+      countryBreakdown,
+      cityBreakdown,
+      hourlyClicks,
+    ] = await Promise.all([
+      db.select({ count: count() }).from(shortenerAnalytics).where(eq(shortenerAnalytics.refId, linkId)),
+      db.select({ count: count() }).from(shortenerAnalytics).where(sql`${shortenerAnalytics.refId} = ${linkId} AND ${shortenerAnalytics.createdAt} >= ${todayStart}`),
+      db.select().from(shortenerAnalytics).where(eq(shortenerAnalytics.refId, linkId)).orderBy(sql`${shortenerAnalytics.createdAt} desc`).limit(50),
+      db.select({ country: shortenerAnalytics.country, count: count(shortenerAnalytics.id) }).from(shortenerAnalytics).where(eq(shortenerAnalytics.refId, linkId)).groupBy(shortenerAnalytics.country).orderBy(sql`count(${shortenerAnalytics.id}) desc`),
+      db.select({ city: shortenerAnalytics.city, country: shortenerAnalytics.country, count: count(shortenerAnalytics.id) }).from(shortenerAnalytics).where(eq(shortenerAnalytics.refId, linkId)).groupBy(shortenerAnalytics.city, shortenerAnalytics.country).orderBy(sql`count(${shortenerAnalytics.id}) desc`).limit(20),
+      db.select({ hour: sql<string>`to_char(${shortenerAnalytics.createdAt}, 'HH24')`, count: count(shortenerAnalytics.id) }).from(shortenerAnalytics).where(eq(shortenerAnalytics.refId, linkId)).groupBy(sql`to_char(${shortenerAnalytics.createdAt}, 'HH24')`).orderBy(sql`to_char(${shortenerAnalytics.createdAt}, 'HH24')`),
+    ]);
 
     return Response.json({
       error: null,
