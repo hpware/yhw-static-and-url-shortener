@@ -8,25 +8,22 @@ const TRANSPARENT_GIF = Buffer.from(
   "base64"
 );
 
-export const GET = async (req: Request) => {
+export const GET = (req: Request) => {
   const url = new URL(req.url);
   const siteId = url.searchParams.get("site_id");
 
   if (siteId) {
     const userAgent = req.headers.get("user-agent") || "unknown";
-    try {
-      const loc = await resolveLocation(req);
-      await db.insert(siteAnalytics).values({
+    resolveLocation(req).then((loc) => {
+      db.insert(siteAnalytics).values({
         id: randomString(16, "url"),
         siteId,
         country: loc.country,
         city: loc.city,
         region: loc.region,
         userAgent,
-      });
-    } catch (e) {
-      console.error("Tracking pixel error:", e);
-    }
+      }).catch(() => {});
+    }).catch(() => {});
   }
 
   return new Response(TRANSPARENT_GIF, {

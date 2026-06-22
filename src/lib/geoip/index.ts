@@ -1,8 +1,28 @@
+import { join } from "path";
+
 export type GeoLocation = {
   country: string;
   city: string;
   region: string;
 };
+
+let maxmindReader: any = null;
+let maxmindAttempted = false;
+
+async function getMaxmindReader() {
+  if (maxmindAttempted) return maxmindReader;
+  maxmindAttempted = true;
+  const dbPath = process.env.MAXMIND_DB_PATH;
+  if (!dbPath) return null;
+  try {
+    const maxmind = await import("maxmind");
+    maxmindReader = await maxmind.open(dbPath);
+    console.log("MaxMind loaded from:", dbPath);
+  } catch {
+    maxmindReader = null;
+  }
+  return maxmindReader;
+}
 
 export async function resolveLocation(req: Request): Promise<GeoLocation> {
   const vercelCountry = req.headers.get("x-vercel-ip-country");
@@ -21,6 +41,20 @@ export async function resolveLocation(req: Request): Promise<GeoLocation> {
   if (!ip || ip === "unknown" || ip === "::1" || ip === "127.0.0.1") {
     return { country: "local", city: "local", region: "local" };
   }
+
+  try {
+    const db = await getMaxmindReader();
+    if (db) {
+      const result = db.get(ip);
+      if (result) {
+        return {
+          country: result.country?.names?.en || result.registered_country?.names?.en || "unknown",
+          city: result.city?.names?.en || "unknown",
+          region: result.subdivisions?.[0]?.names?.en || "unknown",
+        };
+      }
+    }
+  } catch {}
 
   try {
     const resp = await fetch(`http://ip-api.com/json/${ip}?fields=country,city,regionName`, {

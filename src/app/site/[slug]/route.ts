@@ -16,19 +16,16 @@ export const GET = async (req: NextRequest, props: { params: Promise<{ slug: str
     }
 
     const userAgent = req.headers.get("user-agent") || "unknown";
-    try {
-      const loc = await resolveLocation(req);
-      await db.insert(siteAnalytics).values({
+    resolveLocation(req).then((loc) => {
+      db.insert(siteAnalytics).values({
         id: randomString(16, "url"),
         siteId: site[0].id,
         country: loc.country,
         city: loc.city,
         region: loc.region,
         userAgent,
-      });
-    } catch {
-      // non-fatal
-    }
+      }).catch(() => {});
+    }).catch(() => {});
 
     const file = await getFile(`${site[0].fsPath}/index.html`);
     if (!file) {

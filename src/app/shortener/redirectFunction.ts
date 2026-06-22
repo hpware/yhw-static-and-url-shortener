@@ -9,14 +9,15 @@ type props = { params: Promise<{ path: string[] }> };
 
 export const saveAnalyticsData = async (req: NextRequest, slugId: string) => {
   const userAgent = req.headers.get("user-agent") || "unknown";
-  const loc = await resolveLocation(req);
-  await db.insert(shortenerAnalytics).values({
-    refId: slugId,
-    country: loc.country,
-    city: loc.city,
-    region: loc.region,
-    userAgent,
-  });
+  resolveLocation(req).then((loc) => {
+    db.insert(shortenerAnalytics).values({
+      refId: slugId,
+      country: loc.country,
+      city: loc.city,
+      region: loc.region,
+      userAgent,
+    }).catch(() => {});
+  }).catch(() => {});
 };
 
 export const forwardRedirect = async (req: NextRequest, props?: props) => {
@@ -36,7 +37,6 @@ export const forwardRedirect = async (req: NextRequest, props?: props) => {
           307,
         );
       }
-      console.log(path.join("/"));
       const findPath = await db
         .select()
         .from(shortenerData)
