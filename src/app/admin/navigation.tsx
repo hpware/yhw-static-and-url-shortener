@@ -9,12 +9,9 @@ const links = [
   { href: "/settings", label: "Settings" },
 ];
 
-import { authClient } from "@/components/auth-client";
 import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { ViewTransition } from "react";
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -22,56 +19,32 @@ export default function Navigation() {
   if (disallowedPathStartsWith.some((prefix) => pathname.startsWith(prefix))) {
     return null;
   }
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 100);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   return (
-    <div className="flex flex-col select-none">
-      {!scrolled && (
-        <div className="flex flex-row justify-between p-2 m-1 mb-0 pb-0">
-          <ViewTransition name="yhMTitle">
-            <Link href="/">
-              <span>yhM</span>
-              <span className="text-accent-foreground/60 text-xs">v1</span>
-            </Link>
-          </ViewTransition>
-          <div className="flex flex-row items-center space-x-3 ">
-            <a href="/auth/logout" className="group cursor-pointer">
-              <LogOut className="w-4 h-4 group-hover:-rotate-5 group-hover:scale-110" />
-            </a>
-          </div>
-        </div>
-      )}
-      <div
-        className={`transition-all duration-300 flex flex-row overflow-x-scroll hide-scrollbar border-b border-accent p-1 m-1 pl-3 ${scrolled ? "fixed inset-x-0 bg-accent/70 rounded-xl z-50" : ""}`}
-      >
-        {scrolled && (
-          <ViewTransition name="yhMTitle">
-            <span className="p-1 rounded-md">
-              <span>yhM</span>
-              <span className="text-accent-foreground/60 text-xs">v1</span>
-            </span>
-          </ViewTransition>
-        )}
-        <div className="flex flex-row items-center space-x-3">
-          {links.map((link, index) => (
+    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
+      <div className="flex items-center justify-between px-4 py-2">
+        <Link href="/" className="font-semibold text-lg">
+          yhM<span className="text-muted-foreground text-xs ml-0.5">v1</span>
+        </Link>
+        <div className="flex items-center gap-1">
+          {links.map((link) => (
             <Link
-              key={index}
+              key={link.href}
               href={link.href}
-              className={`hover:text-accent-foreground hover:bg-blue-600 transition-all duration-100 p-1 rounded-md ${pathname === link.href ? "border-b border-accent-foreground/90 rounded-b-none text-accent-foreground" : " text-accent-foreground/70"}`}
+              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                pathname === link.href
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
             >
               {link.label}
             </Link>
           ))}
         </div>
+        <a href="/auth/logout" className="text-muted-foreground hover:text-foreground transition-colors">
+          <LogOut className="w-4 h-4" />
+        </a>
       </div>
-    </div>
+    </nav>
   );
 }
