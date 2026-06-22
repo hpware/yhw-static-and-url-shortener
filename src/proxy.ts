@@ -6,14 +6,6 @@ export const config = {
   matcher: ["/((?!_next/static).*)"],
 };
 
-const ADMIN_PATHS = new Set(["", "/", "/urls", "/sites", "/api-keys", "/api-docs", "/settings"]);
-
-function isAdminPath(pathname: string): boolean {
-  if (ADMIN_PATHS.has(pathname)) return true;
-  if (pathname.startsWith("/auth/") || pathname.startsWith("/api/")) return true;
-  return false;
-}
-
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const hostname =
@@ -27,14 +19,8 @@ export async function proxy(req: NextRequest) {
   if (hostname === siteHostingDomain) {
     return NextResponse.rewrite(new URL(`/site${pathname}`, req.url));
   } else if (hostname === adminManagementDomain) {
-    if (!isAdminPath(pathname)) {
-      const shortenerUrl = shortenerDomain
-        ? `https://${shortenerDomain}${pathname}`
-        : new URL(`/shortener${pathname}`, req.url).toString();
-      return NextResponse.redirect(shortenerUrl, 307);
-    }
-
     const isApiRoute = pathname.startsWith("/api/") && !pathname.startsWith("/api/auth/");
+
     if (isApiRoute) {
       const apiKey = userHeaders.get("x-api-key") || userHeaders.get("authorization")?.replace("Bearer ", "");
       if (apiKey) {
@@ -45,21 +31,30 @@ export async function proxy(req: NextRequest) {
     const checkUserLoginStatus = await auth.api.getSession({
       headers: userHeaders,
     });
-    if (
-      !pathname.startsWith("/auth/") &&
-      !pathname.startsWith("/api/auth/") &&
-      checkUserLoginStatus === null
-    ) {
-      return NextResponse.redirect(new URL("/auth/login", req.url));
-    } else if (
-      pathname.startsWith("/auth/") &&
-      pathname !== "/auth/logout"
-    ) {
-      if (checkUserLoginStatus) {
-        return NextResponse.redirect(new URL("/", req.url));
+
+    const isAdminPage = pathname === "/" || pathname === "/urls" || pathname === "/sites" ||
+      pathname === "/api-keys" || pathname === "/api-docs" || pathname === "/settings" ||
+      pathname.startsWith("/auth/") || pathname.startsWith("/api/");
+
+    if (isAdminPage) {
+      if (
+        !pathname.startsWith("/auth/") &&
+        !pathname.startsWith("/api/auth/") &&
+        checkUserLoginStatus === null
+      ) {
+        return NextResponse.redirect(new URL("/auth/login", req.url));
+      } else if (
+        pathname.startsWith("/auth/") &&
+        pathname !== "/auth/logout"
+      ) {
+        if (checkUserLoginStatus) {
+          return NextResponse.redirect(new URL("/", req.url));
+        }
       }
+      return NextResponse.rewrite(new URL(`/admin${pathname}`, req.url));
     }
-    return NextResponse.rewrite(new URL(`/admin${pathname}`, req.url));
+
+    return NextResponse.rewrite(new URL(`/shortener${pathname}`, req.url));
   } else if (hostname === shortenerDomain) {
     return NextResponse.rewrite(new URL(`/shortener${pathname}`, req.url));
   } else {
