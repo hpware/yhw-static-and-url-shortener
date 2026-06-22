@@ -2,14 +2,30 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
+import { LoadingDots } from "@/components/ai/loading-dots";
 
 export default function SettingsClient() {
+  const queryClient = useQueryClient();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [indexUrl, setIndexUrl] = useState("");
 
-  const { data } = useQuery({
+  const { data: session, isLoading } = useQuery({
+    queryKey: ["session"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/session");
+      const data = await res.json();
+      return data;
+    },
+  });
+
+  const { data: indexData } = useQuery({
     queryKey: ["settings-index-redirect"],
     queryFn: async () => {
       const res = await fetch("/api/settings/index-redirect");
@@ -20,17 +36,136 @@ export default function SettingsClient() {
   });
 
   useEffect(() => {
-    if (data !== undefined) setIndexUrl(data || "");
-  }, [data]);
+    if (session?.user) {
+      setName(session.user.name || "");
+      setEmail(session.user.email || "");
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (indexData !== undefined) setIndexUrl(indexData || "");
+  }, [indexData]);
+
+  const updateProfile = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/auth/update-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => toast.success("Profile updated"),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const changePassword = useMutation({
+    mutationFn: async () => {
+      if (newPassword !== confirmPassword) throw new Error("Passwords don't match");
+      if (newPassword.length < 8) throw new Error("Password must be at least 8 characters");
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Password changed");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const saveIndexRedirect = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/settings/index-redirect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: indexUrl || null }),
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      return json;
+    },
+    onSuccess: () => toast.success("Root redirect saved"),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-64"><LoadingDots /></div>;
+  }
 
   return (
     <div className="p-4 space-y-6 max-w-2xl">
-      <h1 className="text-2xl font-bold">Settings</h1>
+      <div className="flex items-center gap-2">
+        <h1 className="text-2xl font-bold">Settings</h1>
+        <span className="text-muted-foreground text-xs border px-1.5 py-0.5 rounded">yhMv1</span>
+      </div>
+
+      <div className="border rounded-lg p-4 space-y-3">
+        <h2 className="text-lg font-semibold">Account</h2>
+        <div className="space-y-2">
+          <Label htmlFor="name">Name</Label>
+          <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" value={email} disabled className="opacity-60" />
+          <p className="text-xs text-muted-foreground">Email cannot be changed</p>
+        </div>
+        <Button onClick={() => updateProfile.mutate()} disabled={updateProfile.isPending}>
+          {updateProfile.isPending ? "Saving..." : "Save Profile"}
+        </Button>
+      </div>
+
+      <div className="border rounded-lg p-4 space-y-3">
+        <h2 className="text-lg font-semibold">Change Password</h2>
+        <div className="space-y-2">
+          <Label htmlFor="current-password">Current Password</Label>
+          <Input
+            id="current-password"
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="new-password">New Password</Label>
+          <Input
+            id="new-password"
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="confirm-password">Confirm New Password</Label>
+          <Input
+            id="confirm-password"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+        </div>
+        <Button
+          onClick={() => changePassword.mutate()}
+          disabled={changePassword.isPending || !currentPassword || !newPassword}
+        >
+          {changePassword.isPending ? "Changing..." : "Change Password"}
+        </Button>
+      </div>
 
       <div className="border rounded-lg p-4 space-y-3">
         <h2 className="text-lg font-semibold">Shortener Root Redirect</h2>
         <p className="text-sm text-muted-foreground">
-          Set the URL that visitors are redirected to when visiting the shortener root domain.
+          Where visitors go when visiting the shortener root.
         </p>
         <div className="flex gap-2">
           <Input
@@ -38,62 +173,10 @@ export default function SettingsClient() {
             value={indexUrl}
             onChange={(e) => setIndexUrl(e.target.value)}
           />
-          <Button
-            onClick={async () => {
-              try {
-                const res = await fetch("/api/settings/index-redirect", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ url: indexUrl || null }),
-                });
-                const json = await res.json();
-                if (json.error) throw new Error(json.error);
-                toast.success("Root redirect updated");
-              } catch (e: any) {
-                toast.error(e.message);
-              }
-            }}
-          >
-            Save
+          <Button onClick={() => saveIndexRedirect.mutate()} disabled={saveIndexRedirect.isPending}>
+            {saveIndexRedirect.isPending ? "Saving..." : "Save"}
           </Button>
         </div>
-      </div>
-
-      <div className="border rounded-lg p-4 space-y-3">
-        <h2 className="text-lg font-semibold">System Info</h2>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <span className="text-muted-foreground">Version</span>
-          <span>0.1.0</span>
-          <span className="text-muted-foreground">Framework</span>
-          <span>Next.js 16</span>
-          <span className="text-muted-foreground">Database</span>
-          <span>PostgreSQL</span>
-          <span className="text-muted-foreground">Auth</span>
-          <span>Better Auth</span>
-        </div>
-      </div>
-
-      <div className="border rounded-lg p-4 space-y-3">
-        <h2 className="text-lg font-semibold">Tracking Pixel</h2>
-        <p className="text-sm text-muted-foreground">
-          Embed this invisible tracking pixel in your sites to track visits:
-        </p>
-        <pre className="bg-black/30 p-2 rounded text-xs overflow-x-auto">
-{`<img src="${typeof window !== "undefined" ? window.location.origin : "ADMIN_URL"}/api/tracking?site_id=YOUR_SITE_ID" width="1" height="1" style="display:none" />`}
-        </pre>
-        <p className="text-sm text-muted-foreground">
-          Or use the tracking script for automatic page view tracking:
-        </p>
-        <pre className="bg-black/30 p-2 rounded text-xs overflow-x-auto">
-{`<script>
-  (function() {
-    var img = new Image();
-    img.src = "${typeof window !== "undefined" ? window.location.origin : "ADMIN_URL"}/api/tracking?site_id=YOUR_SITE_ID&ref=" + encodeURIComponent(document.referrer);
-    img.style.display = "none";
-    document.body.appendChild(img);
-  })();
-</script>`}
-        </pre>
       </div>
     </div>
   );
