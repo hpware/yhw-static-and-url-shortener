@@ -47,6 +47,38 @@ export const GET = async (req: Request) => {
       .orderBy(sql`${shortenerAnalytics.createdAt} desc`)
       .limit(50);
 
+    const countryBreakdown = await db
+      .select({
+        country: shortenerAnalytics.country,
+        count: count(shortenerAnalytics.id),
+      })
+      .from(shortenerAnalytics)
+      .where(eq(shortenerAnalytics.refId, link[0].id))
+      .groupBy(shortenerAnalytics.country)
+      .orderBy(sql`count(${shortenerAnalytics.id}) desc`);
+
+    const cityBreakdown = await db
+      .select({
+        city: shortenerAnalytics.city,
+        country: shortenerAnalytics.country,
+        count: count(shortenerAnalytics.id),
+      })
+      .from(shortenerAnalytics)
+      .where(eq(shortenerAnalytics.refId, link[0].id))
+      .groupBy(shortenerAnalytics.city, shortenerAnalytics.country)
+      .orderBy(sql`count(${shortenerAnalytics.id}) desc`)
+      .limit(20);
+
+    const hourlyClicks = await db
+      .select({
+        hour: sql<string>`to_char(${shortenerAnalytics.createdAt}, 'HH24')`,
+        count: count(shortenerAnalytics.id),
+      })
+      .from(shortenerAnalytics)
+      .where(eq(shortenerAnalytics.refId, link[0].id))
+      .groupBy(sql`to_char(${shortenerAnalytics.createdAt}, 'HH24')`)
+      .orderBy(sql`to_char(${shortenerAnalytics.createdAt}, 'HH24')`);
+
     return Response.json({
       error: null,
       data: {
@@ -54,6 +86,9 @@ export const GET = async (req: Request) => {
         totalClicks: totalClicks.count,
         todayClicks: todayClicks.count,
         recentVisits,
+        countryBreakdown,
+        cityBreakdown,
+        hourlyClicks,
       },
     });
   } catch (e: any) {

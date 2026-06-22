@@ -1,10 +1,23 @@
 import { authenticateRequest } from "@/components/api-auth";
 import { db } from "@/components/drizzle/db";
-import { siteData, siteAnalytics } from "@/components/drizzle/schema";
+import { siteData } from "@/components/drizzle/schema";
 import randomString from "@/components/randomString";
 import { eq } from "drizzle-orm";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
+import { uploadFile, getSitePrefix } from "@/lib/s3";
+
+const EXT_TO_MIME: Record<string, string> = {
+  ".html": "text/html", ".css": "text/css", ".js": "application/javascript",
+  ".json": "application/json", ".png": "image/png", ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg", ".gif": "image/gif", ".svg": "image/svg+xml",
+  ".ico": "image/x-icon", ".webp": "image/webp", ".woff": "font/woff",
+  ".woff2": "font/woff2", ".txt": "text/plain", ".xml": "application/xml",
+  ".pdf": "application/pdf",
+};
+
+function getMime(filename: string): string {
+  const ext = filename.slice(filename.lastIndexOf(".")).toLowerCase();
+  return EXT_TO_MIME[ext] || "application/octet-stream";
+}
 
 export const POST = async (req: Request) => {
   try {
@@ -31,15 +44,13 @@ export const POST = async (req: Request) => {
     }
 
     const siteId = randomString(12, "url");
-    const fsPath = join(process.cwd(), "sites", slug);
-    await mkdir(fsPath, { recursive: true });
+    const prefix = getSitePrefix(slug);
 
     if (files.length > 0) {
       for (const file of files) {
         const buffer = Buffer.from(await file.arrayBuffer());
-        const filePath = join(fsPath, file.name || "index.html");
-        await mkdir(join(filePath, ".."), { recursive: true });
-        await writeFile(filePath, buffer);
+        const key = `${prefix}/${file.name || "index.html"}`;
+        await uploadFile(key, buffer, getMime(file.name || "index.html"));
       }
     }
 
@@ -47,7 +58,7 @@ export const POST = async (req: Request) => {
       id: siteId,
       name,
       slug,
-      fsPath,
+      fsPath: prefix,
       createdBy: auth.userId,
       updatedBy: auth.userId,
     }).returning();

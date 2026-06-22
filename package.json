@@ -13,6 +13,8 @@
     "auth:generate": "pnpm dlx @better-auth/cli generate --config ./src/components/auth.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1073.0",
+    "@aws-sdk/s3-request-presigner": "^3.1073.0",
     "@base-ui/react": "^1.1.0",
     "@tanstack/react-query": "^5.90.20",
     "@tanstack/react-table": "^8.21.3",
@@ -31,6 +33,7 @@
     "gsap": "^3.14.2",
     "jimp": "^1.6.0",
     "lucide-react": "^0.562.0",
+    "maxmind": "^5.0.6",
     "next": "16.1.4",
     "pg": "^8.18.0",
     "radix-ui": "^1.4.3",

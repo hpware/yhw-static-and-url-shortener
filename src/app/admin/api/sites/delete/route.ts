@@ -2,7 +2,7 @@ import { authenticateRequest } from "@/components/api-auth";
 import { db } from "@/components/drizzle/db";
 import { siteData, siteAnalytics } from "@/components/drizzle/schema";
 import { eq } from "drizzle-orm";
-import { rm } from "fs/promises";
+import { deleteSiteFiles } from "@/lib/s3";
 
 export const POST = async (req: Request) => {
   try {
@@ -28,11 +28,7 @@ export const POST = async (req: Request) => {
     await db.delete(siteAnalytics).where(eq(siteAnalytics.siteId, existing[0].id));
     await db.delete(siteData).where(eq(siteData.id, existing[0].id));
 
-    try {
-      await rm(existing[0].fsPath, { recursive: true, force: true });
-    } catch {
-      // fs cleanup failure is non-fatal
-    }
+    await deleteSiteFiles(existing[0].slug);
 
     return Response.json({ error: null, deleted: true });
   } catch (e: any) {

@@ -43,8 +43,9 @@ export const shortenerAnalytics = pgTable("shortener_analytics", {
   refId: uuid("ref_id")
     .notNull()
     .references(() => shortenerData.id),
-  ip: text("ip").notNull(),
-  ipRegion: text("ip_region").notNull(),
+  country: text("country").notNull().default("unknown"),
+  city: text("city").notNull().default("unknown"),
+  region: text("region").notNull().default("unknown"),
   userAgent: text("user_agent").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -75,8 +76,9 @@ export const siteAnalytics = pgTable("site_analytics", {
   siteId: text("site_id")
     .notNull()
     .references(() => siteData.id),
-  ip: text("ip").notNull(),
-  ipRegion: text("ip_region").notNull(),
+  country: text("country").notNull().default("unknown"),
+  city: text("city").notNull().default("unknown"),
+  region: text("region").notNull().default("unknown"),
   userAgent: text("user_agent").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

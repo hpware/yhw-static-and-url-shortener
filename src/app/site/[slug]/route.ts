@@ -2,9 +2,9 @@ import { NextRequest } from "next/server";
 import { db } from "@/components/drizzle/db";
 import { siteData, siteAnalytics } from "@/components/drizzle/schema";
 import { eq } from "drizzle-orm";
-import { readFile } from "fs/promises";
-import { join } from "path";
 import randomString from "@/components/randomString";
+import { resolveLocation } from "@/lib/geoip";
+import { getFile } from "@/lib/s3";
 
 export const GET = async (req: NextRequest, props: { params: Promise<{ slug: string }> }) => {
   try {
@@ -18,26 +18,27 @@ export const GET = async (req: NextRequest, props: { params: Promise<{ slug: str
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     const userAgent = req.headers.get("user-agent") || "unknown";
     try {
+      const loc = await resolveLocation(ip);
       await db.insert(siteAnalytics).values({
         id: randomString(16, "url"),
         siteId: site[0].id,
-        ip,
-        ipRegion: "unknown",
+        country: loc.country,
+        city: loc.city,
+        region: loc.region,
         userAgent,
       });
     } catch {
       // non-fatal
     }
 
-    const indexPath = join(site[0].fsPath, "index.html");
-    try {
-      const content = await readFile(indexPath);
-      return new Response(content, {
-        headers: { "Content-Type": "text/html" },
-      });
-    } catch {
+    const file = await getFile(`${site[0].fsPath}/index.html`);
+    if (!file) {
       return new Response("index.html not found", { status: 404 });
     }
+
+    return new Response(Buffer.from(file.body), {
+      headers: { "Content-Type": file.contentType },
+    });
   } catch (e: any) {
     console.error(e);
     return new Response("Server error", { status: 500 });

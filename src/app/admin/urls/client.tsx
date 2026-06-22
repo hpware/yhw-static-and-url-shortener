@@ -176,7 +176,7 @@ export default function Client() {
 
       {/* Analytics Dialog */}
       <Dialog open={analyticsLink.open} onOpenChange={(s) => setAnalyticsLink({ ...analyticsLink, open: s })}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogTitle>Link Analytics</DialogTitle>
           {analyticsLink.data && (
             <div className="space-y-4">
@@ -190,12 +190,62 @@ export default function Client() {
                   <div className="text-2xl font-bold">{analyticsLink.data.todayClicks}</div>
                 </div>
               </div>
+
+              {analyticsLink.data.countryBreakdown?.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-2">Countries</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {analyticsLink.data.countryBreakdown.map((c: any, i: number) => (
+                      <div key={i} className="flex justify-between text-sm border-b py-1">
+                        <span>{c.country}</span>
+                        <span className="text-muted-foreground">{c.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {analyticsLink.data.cityBreakdown?.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-2">Cities</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {analyticsLink.data.cityBreakdown.map((c: any, i: number) => (
+                      <div key={i} className="flex justify-between text-sm border-b py-1">
+                        <span>{c.city}, {c.country}</span>
+                        <span className="text-muted-foreground">{c.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {analyticsLink.data.hourlyClicks?.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-2">Clicks by Hour</h3>
+                  <div className="flex gap-1 items-end h-20">
+                    {analyticsLink.data.hourlyClicks.map((h: any, i: number) => {
+                      const maxCount = Math.max(...analyticsLink.data.hourlyClicks.map((x: any) => x.count));
+                      const height = maxCount > 0 ? (h.count / maxCount) * 100 : 0;
+                      return (
+                        <div key={i} className="flex-1 flex flex-col items-center">
+                          <div
+                            className="w-full bg-blue-500 rounded-t"
+                            style={{ height: `${height}%`, minHeight: h.count > 0 ? "4px" : "0" }}
+                          />
+                          <span className="text-[8px] text-muted-foreground">{h.hour}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <h3 className="font-semibold mb-2">Recent Visits</h3>
-                <div className="max-h-60 overflow-y-auto space-y-1">
+                <div className="max-h-40 overflow-y-auto space-y-1">
                   {analyticsLink.data.recentVisits?.map((v: any, i: number) => (
                     <div key={i} className="text-xs border-b py-1 flex justify-between">
-                      <span className="font-mono">{v.ip}</span>
+                      <span>{v.city}, {v.country}</span>
                       <span className="text-muted-foreground">{new Date(v.createdAt).toLocaleString()}</span>
                     </div>
                   ))}

@@ -1,5 +1,6 @@
 import { db } from "@/components/drizzle/db";
 import { siteAnalytics } from "@/components/drizzle/schema";
+import { resolveLocation } from "@/lib/geoip";
 import randomString from "@/components/randomString";
 
 const TRANSPARENT_GIF = Buffer.from(
@@ -10,17 +11,18 @@ const TRANSPARENT_GIF = Buffer.from(
 export const GET = async (req: Request) => {
   const url = new URL(req.url);
   const siteId = url.searchParams.get("site_id");
-  const ref = url.searchParams.get("ref") || "";
 
   if (siteId) {
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     const userAgent = req.headers.get("user-agent") || "unknown";
     try {
+      const loc = await resolveLocation(ip);
       await db.insert(siteAnalytics).values({
         id: randomString(16, "url"),
         siteId,
-        ip,
-        ipRegion: "unknown",
+        country: loc.country,
+        city: loc.city,
+        region: loc.region,
         userAgent,
       });
     } catch (e) {

@@ -28,12 +28,9 @@ export const GET = async () => {
       .select({ count: count() })
       .from(siteAnalytics)
       .where(sql`${siteAnalytics.createdAt} >= ${todayStart}`);
-    const [uniqueIPs] = await db
-      .select({ count: countDistinct(shortenerAnalytics.ip) })
+    const [uniqueCountries] = await db
+      .select({ count: countDistinct(shortenerAnalytics.country) })
       .from(shortenerAnalytics);
-    const [uniqueIPsSite] = await db
-      .select({ count: countDistinct(siteAnalytics.ip) })
-      .from(siteAnalytics);
 
     const topLinks = await db
       .select({
@@ -50,7 +47,9 @@ export const GET = async () => {
     const recentClicks = await db
       .select({
         slug: shortenerData.slug,
-        ip: shortenerAnalytics.ip,
+        country: shortenerAnalytics.country,
+        city: shortenerAnalytics.city,
+        region: shortenerAnalytics.region,
         userAgent: shortenerAnalytics.userAgent,
         createdAt: shortenerAnalytics.createdAt,
       })
@@ -58,6 +57,27 @@ export const GET = async () => {
       .leftJoin(shortenerData, eq(shortenerAnalytics.refId, shortenerData.id))
       .orderBy(sql`${shortenerAnalytics.createdAt} desc`)
       .limit(20);
+
+    const topCountries = await db
+      .select({
+        country: shortenerAnalytics.country,
+        count: count(shortenerAnalytics.id),
+      })
+      .from(shortenerAnalytics)
+      .groupBy(shortenerAnalytics.country)
+      .orderBy(sql`count(${shortenerAnalytics.id}) desc`)
+      .limit(10);
+
+    const topCities = await db
+      .select({
+        city: shortenerAnalytics.city,
+        country: shortenerAnalytics.country,
+        count: count(shortenerAnalytics.id),
+      })
+      .from(shortenerAnalytics)
+      .groupBy(shortenerAnalytics.city, shortenerAnalytics.country)
+      .orderBy(sql`count(${shortenerAnalytics.id}) desc`)
+      .limit(10);
 
     return Response.json({
       error: null,
@@ -68,9 +88,11 @@ export const GET = async () => {
         todayShortenerVisits: todayShortener.count,
         todaySiteVisits: todaySite.count,
         todayVisits: todayShortener.count + todaySite.count,
-        uniqueIPs: uniqueIPs.count + uniqueIPsSite.count,
+        uniqueCountries: uniqueCountries.count,
         topLinks,
         recentClicks,
+        topCountries,
+        topCities,
       },
     });
   } catch (e: any) {
