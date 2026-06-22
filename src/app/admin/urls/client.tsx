@@ -1,12 +1,11 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { ListPlusIcon, Trash2, BarChart3, ExternalLink, Copy, Link2, ArrowRight, Check, Sparkles } from "lucide-react";
+import { ListPlusIcon, Trash2, BarChart3, ExternalLink, Copy, ArrowRight, Check, Sparkles, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,8 +21,7 @@ import EditSlugPopUp from "./editPopUp";
 
 export default function Client() {
   const queryClient = useQueryClient();
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createStep, setCreateStep] = useState(0);
+  const [createStep, setCreateStep] = useState(-1); // -1 = collapsed
   const [createUrl, setCreateUrl] = useState("");
   const [createSlug, setCreateSlug] = useState("");
   const [createResult, setCreateResult] = useState<any>(null);
@@ -61,12 +59,22 @@ export default function Client() {
   }, [popUpQRPanel]);
 
   const resetCreate = () => {
+    setCreateStep(-1);
+    setCreateUrl("");
+    setCreateSlug("");
+    setCreateResult(null);
+    setUrlError("");
+    setSlugError("");
+  };
+
+  const startCreate = () => {
     setCreateStep(0);
     setCreateUrl("");
     setCreateSlug("");
     setCreateResult(null);
     setUrlError("");
     setSlugError("");
+    setTimeout(() => urlInputRef.current?.focus(), 100);
   };
 
   const createMutation = useMutation({
@@ -184,19 +192,39 @@ export default function Client() {
         </DialogContent>
       </Dialog>
 
-      {/* Create Wizard */}
-      <Dialog open={createOpen} onOpenChange={(s) => { setCreateOpen(s); if (!s) resetCreate(); }}>
-        <DialogTrigger asChild>
-          <Button className="group" onClick={() => { resetCreate(); setCreateOpen(true); setTimeout(() => urlInputRef.current?.focus(), 100); }}>
-            <ListPlusIcon className="group-hover:-rotate-5 group-hover:scale-110 transition-all duration-300" />Create
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="max-w-md">
-          {createStep === 0 && (
-            <>
-              <DialogTitle>Create Short URL</DialogTitle>
-              <div className="space-y-4 py-2">
-                <div className="space-y-2">
+      <div className="px-4 py-2 space-y-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Short URLs</h1>
+          {createStep === -1 && (
+            <Button className="group" onClick={startCreate}>
+              <ListPlusIcon className="group-hover:-rotate-5 group-hover:scale-110 transition-all duration-300" />Create
+            </Button>
+          )}
+        </div>
+
+        {/* Inline Create Wizard */}
+        {createStep >= 0 && (
+          <div className="border rounded-lg p-4 bg-card">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                {[0, 1, 2].map((s) => (
+                  <div key={s} className={`flex items-center gap-1.5 ${createStep >= s ? "text-foreground" : "text-muted-foreground"}`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                      createStep > s ? "bg-green-600 text-white" : createStep === s ? "bg-primary text-primary-foreground" : "bg-muted"
+                    }`}>
+                      {createStep > s ? <Check className="w-3 h-3" /> : s + 1}
+                    </div>
+                    <span className="text-sm hidden sm:inline">{s === 0 ? "URL" : s === 1 ? "Slug" : "Done"}</span>
+                    {s < 2 && <ArrowRight className="w-3 h-3 text-muted-foreground" />}
+                  </div>
+                ))}
+              </div>
+              <Button variant="ghost" size="sm" onClick={resetCreate}><X className="w-4 h-4" /></Button>
+            </div>
+
+            {createStep === 0 && (
+              <div className="flex gap-3 items-end">
+                <div className="flex-1 space-y-1">
                   <Label>Destination URL</Label>
                   <Input
                     ref={urlInputRef}
@@ -209,20 +237,15 @@ export default function Client() {
                   />
                   {urlError && <p className="text-destructive text-xs">{urlError}</p>}
                 </div>
-                <DialogFooter>
-                  <Button onClick={() => setCreateStep(1)} disabled={!createUrl || !!validateUrl(createUrl)}>
-                    Next <ArrowRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </DialogFooter>
+                <Button onClick={() => setCreateStep(1)} disabled={!createUrl || !!validateUrl(createUrl)}>
+                  Next <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
               </div>
-            </>
-          )}
+            )}
 
-          {createStep === 1 && (
-            <>
-              <DialogTitle>Choose Slug</DialogTitle>
-              <div className="space-y-4 py-2">
-                <div className="space-y-2">
+            {createStep === 1 && (
+              <div className="flex gap-3 items-end">
+                <div className="flex-1 space-y-1">
                   <Label>Custom slug (optional)</Label>
                   <Input
                     placeholder="my-link (leave empty for auto)"
@@ -232,53 +255,36 @@ export default function Client() {
                     autoFocus
                   />
                   {slugError && <p className="text-destructive text-xs">{slugError}</p>}
+                  <p className="text-xs text-muted-foreground font-mono">{shortenerUrl}/{createSlug || "<random>"}</p>
                 </div>
-                <div className="bg-muted/50 rounded-lg p-3 text-sm">
-                  <div className="text-muted-foreground mb-1">Preview</div>
-                  <div className="font-mono">{shortenerUrl}/{createSlug || "<random>"}</div>
-                  <div className="text-muted-foreground mt-1 text-xs truncate">{createUrl}</div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setCreateStep(0)}>Back</Button>
-                  <Button onClick={() => createMutation.mutate({ url: createUrl, slug: createSlug || undefined })} disabled={createMutation.isPending || !!slugError}>
-                    {createMutation.isPending ? <><LoadingDots /> Creating...</> : "Create"}
-                  </Button>
-                </DialogFooter>
+                <Button variant="outline" onClick={() => setCreateStep(0)}>Back</Button>
+                <Button onClick={() => createMutation.mutate({ url: createUrl, slug: createSlug || undefined })} disabled={createMutation.isPending || !!slugError}>
+                  {createMutation.isPending ? <><LoadingDots /> Creating...</> : "Create"}
+                </Button>
               </div>
-            </>
-          )}
+            )}
 
-          {createStep === 2 && createResult && (
-            <>
-              <DialogTitle className="flex items-center gap-2"><Check className="w-5 h-5 text-green-500" /> Created!</DialogTitle>
-              <div className="space-y-4 py-2">
-                <div className="bg-muted/50 rounded-lg p-4 text-center">
-                  <div className="font-mono text-lg">{shortenerUrl}/{createResult.slug}</div>
-                  <div className="text-muted-foreground text-xs mt-1 truncate">{createUrl}</div>
+            {createStep === 2 && createResult && (
+              <div className="flex items-center gap-4">
+                <Check className="w-5 h-5 text-green-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-mono text-sm">{shortenerUrl}/{createResult.slug}</div>
+                  <div className="text-muted-foreground text-xs truncate">{createUrl}</div>
                 </div>
-                <div className="flex gap-2">
-                  <Button className="flex-1" onClick={() => { navigator.clipboard.writeText(`${shortenerUrl}/${createResult.slug}`); toast.success("Copied"); }}>
-                    <Copy className="w-4 h-4 mr-1" /> Copy Link
-                  </Button>
-                  <Button variant="outline" className="flex-1" onClick={() => { setPopUpQRPanel({ ...popUpQRPanel, status: true, slug: createResult.slug }); setCreateOpen(false); }}>
-                    <Sparkles className="w-4 h-4 mr-1" /> QR Code
-                  </Button>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => { resetCreate(); urlInputRef.current?.focus(); }}>Create Another</Button>
-                  <Button onClick={() => setCreateOpen(false)}>Done</Button>
-                </DialogFooter>
+                <Button size="sm" onClick={() => { navigator.clipboard.writeText(`${shortenerUrl}/${createResult.slug}`); toast.success("Copied"); }}>
+                  <Copy className="w-4 h-4 mr-1" /> Copy
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => { setPopUpQRPanel({ ...popUpQRPanel, status: true, slug: createResult.slug }); }}>
+                  <Sparkles className="w-4 h-4 mr-1" /> QR
+                </Button>
+                <Button size="sm" variant="outline" onClick={startCreate}>New</Button>
+                <Button size="sm" variant="ghost" onClick={resetCreate}><X className="w-4 h-4" /></Button>
               </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+            )}
+          </div>
+        )}
 
-      {/* Table */}
-      <div>
-        <div className="justify-between flex flex-row px-4 py-2">
-          <h1 className="text-2xl font-bold">Short URLs</h1>
-        </div>
+        {/* Table */}
         <Table
           key="urls_table"
           columns={[
