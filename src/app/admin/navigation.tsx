@@ -9,10 +9,12 @@ const links = [
   { href: "/settings", label: "Settings" },
 ];
 
+import { authClient } from "@/components/auth-client";
 import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
+import { ViewTransition } from "react";
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -21,14 +23,13 @@ export default function Navigation() {
     return null;
   }
   const [scrolled, setScrolled] = useState(false);
-  const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
-          setScrolled(window.scrollY > 80);
+          setScrolled(window.scrollY > 100);
           ticking = false;
         });
         ticking = true;
@@ -39,43 +40,48 @@ export default function Navigation() {
   }, []);
 
   return (
-    <div className="flex flex-col select-none" ref={navRef}>
+    <div className="flex flex-col select-none">
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
           scrolled ? "max-h-0 opacity-0" : "max-h-12 opacity-100"
         }`}
       >
-        <div className="flex flex-row justify-between items-center px-4 py-1.5">
-          <Link href="/" className="font-semibold text-lg hover:opacity-80 transition-opacity">
-            yhM<span className="text-muted-foreground text-xs ml-0.5">v1</span>
-          </Link>
-          <a href="/auth/logout" className="text-muted-foreground hover:text-foreground transition-colors">
-            <LogOut className="w-4 h-4" />
-          </a>
+        <div className="flex flex-row justify-between p-2 m-1 mb-0 pb-0">
+          <ViewTransition name="yhMTitle">
+            <Link href="/">
+              <span>yhM</span>
+              <span className="text-accent-foreground/60 text-xs">v1</span>
+            </Link>
+          </ViewTransition>
+          <div className="flex flex-row items-center space-x-3">
+            <a href="/auth/logout" className="group cursor-pointer">
+              <LogOut className="w-4 h-4 group-hover:-rotate-5 group-hover:scale-110 transition-all" />
+            </a>
+          </div>
         </div>
       </div>
-
       <div
-        className={`transition-all duration-300 ease-in-out border-b border-border ${
-          scrolled
-            ? "fixed inset-x-0 top-0 z-50 bg-background/90 backdrop-blur-md"
-            : "relative"
+        className={`transition-all duration-300 ease-in-out flex flex-row overflow-x-scroll hide-scrollbar border-b border-accent p-1 m-1 pl-3 ${
+          scrolled ? "fixed inset-x-0 top-0 bg-accent/70 backdrop-blur-md rounded-xl z-50" : ""
         }`}
       >
-        <div className="flex items-center gap-1 px-3 py-1.5 overflow-x-auto hide-scrollbar">
-          {scrolled && (
-            <Link href="/" className="font-semibold text-sm mr-2 hover:opacity-80 transition-opacity shrink-0">
-              yhM<span className="text-muted-foreground text-[10px] ml-0.5">v1</span>
-            </Link>
-          )}
-          {links.map((link) => (
+        {scrolled && (
+          <ViewTransition name="yhMTitle">
+            <span className="p-1 rounded-md">
+              <span>yhM</span>
+              <span className="text-accent-foreground/60 text-xs">v1</span>
+            </span>
+          </ViewTransition>
+        )}
+        <div className="flex flex-row items-center space-x-3">
+          {links.map((link, index) => (
             <Link
-              key={link.href}
+              key={index}
               href={link.href}
-              className={`px-3 py-1 text-sm rounded-md whitespace-nowrap transition-colors ${
+              className={`hover:text-accent-foreground hover:bg-blue-600 transition-all duration-100 p-1 rounded-md ${
                 pathname === link.href
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  ? "border-b border-accent-foreground/90 rounded-b-none text-accent-foreground"
+                  : "text-accent-foreground/70"
               }`}
             >
               {link.label}
